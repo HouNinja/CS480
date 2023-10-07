@@ -1,6 +1,7 @@
 import numpy as np 
 import pandas as pd
 import sys
+from sklearn.linear_model import Ridge
 
 def Generating_Feature_Vector_Matrix(filename: str):
     data = pd.read_csv(filename, header = None)
@@ -22,27 +23,26 @@ def Ridge_Regression(X, y, lambda_value):
 
 def Ridge_Regression_Gradient_Descent(X, y, lambda_value, num_iterations):
     row, column = X.shape
-    w_0 = np.zeros(column)
+    w_0 = np.zeros((column, 1))
     b_0 = 0
-    vector_one = np.ones(row)
-    direction = np.zeros(column)
-    step_size = 1.0
+    vector_one = np.ones((row, 1))
+    direction = np.zeros((column, 1))
+    step_size = 0.4
     for _ in range(num_iterations):
-        prev_direction = direction
-        direction = 1 / row * X.T.dot(X.dot(direction) + b * vector_one - y) + 2 * lambda_value * direction
+        prev_w_0 = w_0
+        direction = 1 / row * (X.T.dot(X.dot(w_0) + b_0 * vector_one - y) + 2 * lambda_value * direction)
+        b_0 = b_0 - step_size * np.sum(X.dot(w_0) + b_0 * vector_one - y) / row
         w_0 = w_0 - step_size * direction
-        b_0 = b_0 - step_size * np.sum(X.dot(direction) + b * vector_one - y)
-        if np.linalg.norm(direction - prev_direction) <= 0.0001:
+        if np.linalg.norm(w_0 - prev_w_0) <= 0.0001:
             break
-    w_0.append(b_0)
-    return w_0
+    return w_0, b_0
 
 def standardizing_data(X):
     return (X - np.mean(X, axis = 0)) / np.std(X, axis = 0)
 
 def Compute_error(X, w, b, y):
     row, column = X.shape
-    vector = X.dot(w) + b * np.ones(row) - y
+    vector = X.dot(w) + b * np.ones((row, 1)) - y
     vector = vector.flatten()
     return 1 / 2 / row * vector.dot(vector)
 
@@ -56,21 +56,39 @@ def Compute_Loss(X, w, b, y, lambda_value):
 
 if __name__ == "__main__":
     X = Generating_Feature_Vector_Matrix("housing_X_train.csv")
-    X = standardizing_data(X)
     y = Generating_flag_value_vector("housing_y_train.csv")
+    X = standardizing_data(X)
     y = standardizing_data(y)
+    lambda_value = 0
 
     X_test = Generating_Feature_Vector_Matrix("housing_X_test.csv")
-    X_test = standardizing_data(X)
     y_test = Generating_flag_value_vector("housing_y_test.csv")
-    y_test = standardizing_data(y)
 
-    result_0 = Ridge_Regression(X, y, 0)
+    result_0 = Ridge_Regression(X, y, lambda_value)
     w = result_0[:-1]
     b = result_0[-1]
-    print(b)
     Training_Error_Ridge = Compute_error(X, w, b, y)
-    Training_loss_Ridge = Compute_Loss(X, w, b, y, 0)
+    Training_loss_Ridge = Compute_Loss(X, w, b, y, lambda_value)
+    Test_Error = Compute_error(X_test, w, b, y_test)
 
+    ridge_model = Ridge(alpha = lambda_value)
+    ridge_model.fit(X, y)
+    y_pred = ridge_model.predict(X_test)
+    y_diff = y_pred - y_test
+    y_diff = y_diff.flatten()
+    r, c = X_test.shape
+    # print (1 / 2 / r * y_diff.dot(y_diff))
+
+
+    w_1, b_1 = Ridge_Regression_Gradient_Descent(X, y, lambda_value, 20000000000)
+    Training_Error_Ridge_1 = Compute_error(X, w_1, b_1, y)
+    Training_loss_Ridge_1 = Compute_Loss(X, w_1, b_1, y, lambda_value)
+    Test_Error_1 = Compute_error(X_test, w_1, b_1, y_test)
     print(Training_Error_Ridge)
     print(Training_loss_Ridge)
+    print(Test_Error)
+
+    print(Training_Error_Ridge_1)
+    print(Training_loss_Ridge_1)
+    print(Test_Error_1)
+    

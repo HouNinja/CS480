@@ -40,6 +40,7 @@ def Ridge_Regression_CV(Split_data, Split_y, hyperparameters):
             difference_y = difference_y.flatten()
             performance += difference_y.dot(difference_y)
         if performance < best_performance:
+            best_performance = performance
             output = i
     return output
 
@@ -63,6 +64,7 @@ def Lasso_CV(Split_data, Split_y, hyperparameters):
             difference_y = difference_y.flatten()
             performance += difference_y.dot(difference_y)
         if performance < best_performance:
+            best_performance = performance
             output = i
     return output
 
@@ -77,7 +79,7 @@ def Plotting_Histogram(X, y, X_test, y_test, hyperparameters):
     linear_coef = linear_model.coef_.flatten()
     y_diff = linear_model.predict(X_test) - y_test
     y_diff = y_diff.flatten()
-    linear_error = y_diff.dot(y_diff)
+    linear_error = y_diff.dot(y_diff) / len(y_diff)
     data = []
     data.append(linear_coef)
 
@@ -86,7 +88,7 @@ def Plotting_Histogram(X, y, X_test, y_test, hyperparameters):
     ridge_coef = ridge_model.coef_.flatten()
     y_diff = ridge_model.predict(X_test) - y_test
     y_diff = y_diff.flatten()
-    ridge_error = y_diff.dot(y_diff)
+    ridge_error = y_diff.dot(y_diff) / len(y_diff)
     data.append(ridge_coef)
 
     lasso_model = Lasso(alpha = hyperparameters[1])
@@ -94,7 +96,7 @@ def Plotting_Histogram(X, y, X_test, y_test, hyperparameters):
     lasso_coef = lasso_model.coef_.flatten()
     y_diff = lasso_model.predict(X_test) - y_test
     y_diff = y_diff.flatten()
-    lasso_error = y_diff.dot(y_diff)
+    lasso_error = y_diff.dot(y_diff) / len(y_diff)
     data.append(lasso_coef)
 
     range_min = min(np.min(linear_coef, axis = 0), np.min(ridge_coef, axis = 0), np.min(lasso_coef, axis = 0))
@@ -125,7 +127,10 @@ if __name__ == "__main__":
     split_X = Split_data(X)
     split_y = Split_data(y)
     unregularized = [0]
-    hyperparameters = [0.05, 0.1, 0.5, 1.0]
+    hyperparameters = [0.05, 0.1, 0.5]
+    for i in range(1, 51):
+        hyperparameters.append(i)
+    
     selected_hyperparameters = []
     selected_hyperparameters.append(Ridge_Regression_CV(split_X, split_y, hyperparameters))
     selected_hyperparameters.append(Lasso_CV(split_X, split_y, hyperparameters))
