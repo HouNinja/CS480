@@ -20,7 +20,7 @@ def SVR_Gradient_Descent(X, y, num_iterations, C, epsilon):
     b_0 = 0
     # vector_one = np.ones((row, 1))
     # direction = np.zeros((column, 1))
-    step_size = 0.4
+    step_size = 0.001
     for _ in range(num_iterations):
         for index, row in X.iterrows():
             # stepsize
