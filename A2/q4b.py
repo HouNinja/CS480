@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import math
 import matplotlib.pyplot as plt
+import random
 
 class TreeNode:
     def __init__(self, label, data_points, labels):
@@ -66,7 +67,10 @@ class DecisionTree:
         Predicted_label_L, Predicted_label_R = 0, 0
 
         min_loss = float("inf")
-        for i in range(num_columns):
+
+        random_features = random.sample(range(num_columns), 4)
+
+        for i in random_features:
             for index in range(num_rows):
                 Temp_Data_L = []
                 Temp_Data_R = []
@@ -171,6 +175,44 @@ if __name__ == "__main__":
     y_train = np.loadtxt('data/y_train_D.csv', delimiter=",").astype(int)
     X_test = np.loadtxt('data/X_test_D.csv', delimiter=",")
     y_test = np.loadtxt('data/y_test_D.csv', delimiter=",").astype(int)
+
+    print(type(X_train))
+    output = []
+    for _ in range(11):
+        Trees = []
+        for _ in range(101):
+            Tree = DecisionTree(3)
+            row = len(X_train)
+            Randomized_Data = []
+            Randomized_y = []
+            for _ in range(row):
+                a = random.randint(0, row - 1)
+                Randomized_Data.append(X_train[a])
+                Randomized_y.append(y_train[a])
+            Tree.build(np.array(Randomized_Data), np.array(Randomized_y), "Entropy")
+            Trees.append(Tree)
+
+        matrix = []
+        final_y = []
+        for tree in Trees:
+            matrix.append(tree.predict(X_test))
+
+        print(len(matrix))
+        for i in range(len(matrix[0])):
+            count_ones = 0
+            for j in range(len(matrix)):
+                if matrix[j][i] == 1:
+                    count_ones += 1
+            if count_ones >= 51:
+                final_y.append(1)
+            else:
+                final_y.append(0)
+        output.append(Accuracy_Test(y_test, final_y))
+
+    output.sort()
+    print(f"the median is {output[5]}, the maximum is {max(output)}, the minimum is {min(output)}")
+        
+    
 
     # plot_the_graph(X_train, y_train, X_test, y_test, "Gini_Index")
     
